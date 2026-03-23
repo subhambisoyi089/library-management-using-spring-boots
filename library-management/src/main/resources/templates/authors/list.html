@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Authors | LibraryMS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
+:root{--sidebar-width:240px;--brand-color:#1e3a5f;--accent:#2563eb}
+body{background:#f0f4f8;min-height:100vh;font-family:'Segoe UI',sans-serif}
+.sidebar{width:var(--sidebar-width);position:fixed;top:0;left:0;height:100vh;background:var(--brand-color);color:#fff;display:flex;flex-direction:column;z-index:1000;box-shadow:3px 0 15px rgba(0,0,0,.15)}
+.sidebar-brand{padding:1.5rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.1);font-size:1.2rem;font-weight:700}
+.sidebar-brand i{color:#60a5fa;margin-right:8px}
+.sidebar-nav{padding:1rem 0;flex:1}
+.sidebar-section{padding:.4rem 1rem;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:.5rem}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:.6rem 1.2rem;color:rgba(255,255,255,.78);text-decoration:none;font-size:.9rem;border-left:3px solid transparent;transition:all .2s}
+.sidebar-nav a:hover{background:rgba(255,255,255,.08);color:#fff;border-left-color:#60a5fa}
+.sidebar-nav a i{width:18px;text-align:center}
+.sidebar-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-footer .user-name{font-weight:600;color:#fff;font-size:.9rem}
+.sidebar-footer .user-info{font-size:.82rem;color:rgba(255,255,255,.6)}
+.main-content{margin-left:var(--sidebar-width);padding:1.5rem 2rem}
+.topbar{background:#fff;padding:.75rem 1.5rem;margin:-1.5rem -2rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.topbar h1{font-size:1.2rem;font-weight:600;color:#1e293b;margin:0}
+.card{border:none;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card-header{background:#fff;border-bottom:1px solid #f1f5f9;font-weight:600;padding:1rem 1.25rem;border-radius:12px 12px 0 0!important}
+.table th{font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.5px;color:#64748b;background:#f8fafc}
+.table td{vertical-align:middle;font-size:.88rem}
+.btn-primary{background:var(--accent);border-color:var(--accent)}
+.author-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
+</style>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div class="topbar">
+        <h1><i class="bi bi-person-lines-fill me-2 text-primary"></i>Authors</h1>
+        <a th:href="@{/authors/new}" class="btn btn-primary btn-sm" sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+            <i class="bi bi-plus-circle me-1"></i> Add Author
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Search -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form th:action="@{/authors}" method="get" class="d-flex gap-2 align-items-center">
+                <div class="input-group" style="max-width:320px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Search authors..." th:value="${search}"/>
+                </div>
+                <button type="submit" class="btn btn-outline-primary btn-sm">Search</button>
+                <a th:href="@{/authors}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header" th:text="'All Authors (' + ${#lists.size(authors)} + ')'">Authors</div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead>
+                <tr>
+                    <th class="ps-3">#</th>
+                    <th>Author</th>
+                    <th>Email</th>
+                    <th>Nationality</th>
+                    <th>Books</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="author, iter : ${authors}">
+                    <td class="ps-3 text-muted" th:text="${iter.count}"></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="author-avatar"
+                                 th:text="${#strings.substring(author.firstName,0,1) + #strings.substring(author.lastName,0,1)}"></div>
+                            <div>
+                                <div class="fw-semibold" th:text="${author.fullName}"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted small" th:text="${author.email ?: '—'}"></td>
+                    <td th:text="${author.nationality ?: '—'}"></td>
+                    <td>
+                        <span class="badge bg-light text-dark"
+                              th:text="${author.books != null ? #lists.size(author.books) : 0} + ' book(s)'"></span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a th:href="@{/authors/{id}(id=${author.id})}" class="btn btn-sm btn-outline-info" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a th:href="@{/authors/edit/{id}(id=${author.id})}" class="btn btn-sm btn-outline-secondary"
+                               sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a th:href="@{/authors/delete/{id}(id=${author.id})}" class="btn btn-sm btn-outline-danger"
+                               sec:authorize="hasRole('ADMIN')" title="Delete"
+                               onclick="return confirm('Delete this author?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(authors)}">
+                    <td colspan="6" class="text-center text-muted py-4">No authors found</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

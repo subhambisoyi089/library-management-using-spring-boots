@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>User Profile | LibraryMS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
+:root{--sidebar-width:240px;--brand-color:#1e3a5f;--accent:#2563eb}
+body{background:#f0f4f8;min-height:100vh;font-family:'Segoe UI',sans-serif}
+.sidebar{width:var(--sidebar-width);position:fixed;top:0;left:0;height:100vh;background:var(--brand-color);color:#fff;display:flex;flex-direction:column;z-index:1000;box-shadow:3px 0 15px rgba(0,0,0,.15)}
+.sidebar-brand{padding:1.5rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.1);font-size:1.2rem;font-weight:700}
+.sidebar-brand i{color:#60a5fa;margin-right:8px}
+.sidebar-nav{padding:1rem 0;flex:1}
+.sidebar-section{padding:.4rem 1rem;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:.5rem}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:.6rem 1.2rem;color:rgba(255,255,255,.78);text-decoration:none;font-size:.9rem;border-left:3px solid transparent;transition:all .2s}
+.sidebar-nav a:hover{background:rgba(255,255,255,.08);color:#fff;border-left-color:#60a5fa}
+.sidebar-nav a i{width:18px;text-align:center}
+.sidebar-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-footer .user-name{font-weight:600;color:#fff;font-size:.9rem}
+.sidebar-footer .user-info{font-size:.82rem;color:rgba(255,255,255,.6)}
+.main-content{margin-left:var(--sidebar-width);padding:1.5rem 2rem}
+.topbar{background:#fff;padding:.75rem 1.5rem;margin:-1.5rem -2rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.topbar h1{font-size:1.2rem;font-weight:600;color:#1e293b;margin:0}
+.card{border:none;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card-header{background:#fff;border-bottom:1px solid #f1f5f9;font-weight:600;padding:1rem 1.25rem;border-radius:12px 12px 0 0!important}
+.detail-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:600;margin-bottom:2px}
+.detail-value{font-size:.95rem;color:#1e293b;font-weight:500}
+.user-avatar-lg{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2.2rem;margin:0 auto 1rem}
+.table th{font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.5px;color:#64748b;background:#f8fafc}
+.table td{vertical-align:middle;font-size:.88rem}
+.badge-issued{background:#dbeafe;color:#1e40af}
+.badge-overdue{background:#fee2e2;color:#991b1b}
+.badge-returned{background:#f1f5f9;color:#475569}
+</style>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div class="topbar">
+        <h1><i class="bi bi-person-circle me-2 text-primary"></i>User Profile</h1>
+        <div class="d-flex gap-2">
+            <a th:href="@{/users/edit/{id}(id=${user.id})}" class="btn btn-outline-secondary btn-sm"
+               sec:authorize="hasRole('ADMIN')"><i class="bi bi-pencil me-1"></i>Edit</a>
+            <a th:href="@{/users}" class="btn btn-outline-secondary btn-sm"
+               sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')"><i class="bi bi-arrow-left me-1"></i>Back</a>
+            <a th:href="@{/dashboard}" class="btn btn-outline-secondary btn-sm"
+               sec:authorize="hasRole('MEMBER')"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+        </div>
+    </div>
+
+    <div class="row g-3" th:if="${user != null}">
+        <div class="col-lg-4">
+            <div class="card text-center p-4">
+                <div class="user-avatar-lg" th:text="${#strings.substring(user.fullName,0,1)}"></div>
+                <h5 class="fw-bold mb-1" th:text="${user.fullName}"></h5>
+                <div class="text-muted small mb-1">@<span th:text="${user.username}"></span></div>
+                <code class="small" th:text="${user.memberId}"></code>
+                <div class="mt-2 d-flex justify-content-center gap-1 flex-wrap">
+                    <span th:each="role : ${user.roles}"
+                          th:text="${#strings.replace(role.name,'ROLE_','')}"
+                          th:class="${role.name=='ROLE_ADMIN'} ? 'badge bg-danger' : (${role.name=='ROLE_LIBRARIAN'} ? 'badge bg-warning text-dark' : 'badge bg-info text-dark')"></span>
+                </div>
+                <div class="mt-2">
+                    <span th:if="${user.enabled}" class="badge" style="background:#dcfce7;color:#166534;">Active</span>
+                    <span th:unless="${user.enabled}" class="badge" style="background:#fee2e2;color:#991b1b;">Disabled</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-info-circle me-2 text-primary"></i>Account Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-value" th:text="${user.fullName}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Username</div>
+                            <div class="detail-value" th:text="${user.username}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value" th:text="${user.email}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value" th:text="${user.phone ?: '—'}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Member ID</div>
+                            <div class="detail-value"><code th:text="${user.memberId}"></code></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Joined</div>
+                            <div class="detail-value"
+                                 th:text="${user.createdAt != null ? #temporals.format(user.createdAt,'dd MMM yyyy') : '—'}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issue Records -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-arrow-left-right me-2 text-primary"></i>Issue Records</span>
+                    <span class="badge bg-secondary" th:text="${#lists.size(issueRecords)} + ' total'"></span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-3">Book</th>
+                            <th>Issue Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                            <th sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="ir : ${issueRecords}">
+                            <td class="ps-3 fw-semibold" th:text="${ir.book.title}"></td>
+                            <td th:text="${#temporals.format(ir.issueDate,'dd MMM yyyy')}"></td>
+                            <td th:text="${#temporals.format(ir.dueDate,'dd MMM yyyy')}"></td>
+                            <td th:text="${ir.returnDate != null ? #temporals.format(ir.returnDate,'dd MMM yyyy') : '—'}"></td>
+                            <td>
+                                <span th:if="${ir.status.name()=='ISSUED'}" class="badge badge-issued">Issued</span>
+                                <span th:if="${ir.status.name()=='RETURNED'}" class="badge badge-returned">Returned</span>
+                                <span th:if="${ir.status.name()=='OVERDUE'}" class="badge badge-overdue"
+                                      th:text="'Overdue' + (${ir.fineAmount > 0} ? ' ₹' + ${ir.fineAmount} : '')"></span>
+                            </td>
+                            <td sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+                                <a th:if="${ir.status.name()=='ISSUED'}"
+                                   th:href="@{/books/return/{id}(id=${ir.id})}"
+                                   class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-box-arrow-left"></i> Return
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(issueRecords)}">
+                            <td colspan="6" class="text-center text-muted py-4">No issue records</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard | LibraryMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <th:block th:replace="~{layout :: head-styles}"></th:block>
+    <style>
+        :root { --sidebar-width: 240px; --brand-color: #1e3a5f; --accent: #2563eb; }
+        body { background: #f0f4f8; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        .sidebar {
+            width: var(--sidebar-width); position: fixed; top: 0; left: 0;
+            height: 100vh; background: var(--brand-color); color: white;
+            display: flex; flex-direction: column; z-index: 1000;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.15);
+        }
+        .sidebar-brand { padding: 1.5rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.2rem; font-weight: 700; }
+        .sidebar-brand i { color: #60a5fa; margin-right: 8px; }
+        .sidebar-nav { padding: 1rem 0; flex: 1; }
+        .sidebar-section { padding: 0.4rem 1rem; font-size: 0.68rem;
+            text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-top: 0.5rem; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 1.2rem; color: rgba(255,255,255,0.78);
+            text-decoration: none; font-size: 0.9rem; transition: all 0.2s;
+            border-left: 3px solid transparent; }
+        .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,0.08);
+            color: white; border-left-color: #60a5fa; }
+        .sidebar-nav a i { width: 18px; text-align: center; }
+        .sidebar-footer { padding: 1rem 1.2rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-footer .user-name { font-weight: 600; color: white; font-size: 0.9rem; }
+        .sidebar-footer .user-info { font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+        .main-content { margin-left: var(--sidebar-width); padding: 1.5rem 2rem; }
+        .topbar { background: white; padding: 0.75rem 1.5rem; margin: -1.5rem -2rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0; display: flex; align-items: center;
+            justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .topbar h1 { font-size: 1.2rem; font-weight: 600; color: #1e293b; margin: 0; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+        .card-header { background: white; border-bottom: 1px solid #f1f5f9;
+            font-weight: 600; padding: 1rem 1.25rem; border-radius: 12px 12px 0 0 !important; }
+        .stat-card { border-radius: 12px; padding: 1.5rem; color: white; }
+        .stat-card .stat-number { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+        .stat-card .stat-label { font-size: 0.82rem; opacity: 0.85; margin-top: 0.3rem; }
+        .stat-card .stat-icon { font-size: 2.5rem; opacity: 0.25; position: absolute; right: 1rem; top: 1rem; }
+        .table th { font-weight: 600; font-size: 0.82rem; text-transform: uppercase;
+            letter-spacing: 0.5px; color: #64748b; background: #f8fafc; }
+        .table td { vertical-align: middle; font-size: 0.88rem; }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="sidebar-brand"><i class="bi bi-book-half"></i> LibraryMS</div>
+    <nav class="sidebar-nav">
+        <div class="sidebar-section">Main</div>
+        <a th:href="@{/dashboard}" class="active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+        <div class="sidebar-section">Catalogue</div>
+        <a th:href="@{/books}"><i class="bi bi-journal-bookmark"></i> Books</a>
+        <a th:href="@{/authors}"><i class="bi bi-person-lines-fill"></i> Authors</a>
+        <div sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+            <div class="sidebar-section">Circulation</div>
+            <a th:href="@{/issues}"><i class="bi bi-arrow-left-right"></i> Issue Records</a>
+            <a th:href="@{/books/issue}"><i class="bi bi-box-arrow-in-right"></i> Issue a Book</a>
+        </div>
+        <div sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+            <div class="sidebar-section">Members</div>
+            <a th:href="@{/users}"><i class="bi bi-people"></i> Members</a>
+        </div>
+        <div sec:authorize="hasRole('MEMBER')">
+            <div class="sidebar-section">My Library</div>
+            <a th:href="@{/users/profile}"><i class="bi bi-person-circle"></i> My Profile</a>
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-name" sec:authentication="name">username</div>
+        <div class="user-info" sec:authorize="hasRole('ADMIN')"><i class="bi bi-shield-check"></i> Administrator</div>
+        <div class="user-info" sec:authorize="hasRole('LIBRARIAN')"><i class="bi bi-person-badge"></i> Librarian</div>
+        <div class="user-info" sec:authorize="hasRole('MEMBER')"><i class="bi bi-person"></i> Member</div>
+        <a th:href="@{/auth/logout}" class="btn btn-sm btn-outline-light mt-2 w-100">
+            <i class="bi bi-box-arrow-left"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="topbar">
+        <h1><i class="bi bi-grid-1x2 me-2 text-primary"></i>Dashboard</h1>
+        <span class="text-muted small">Welcome back, <strong sec:authentication="name"></strong></span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);">
+                <i class="bi bi-journal-bookmark stat-icon"></i>
+                <div class="stat-number" th:text="${totalBooks}">0</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#059669,#047857);">
+                <i class="bi bi-check-circle stat-icon"></i>
+                <div class="stat-number" th:text="${availableBooks}">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">
+                <i class="bi bi-people stat-icon"></i>
+                <div class="stat-number" th:text="${totalMembers}">0</div>
+                <div class="stat-label">Members</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#0891b2,#0e7490);">
+                <i class="bi bi-arrow-left-right stat-icon"></i>
+                <div class="stat-number" th:text="${activeIssues}">0</div>
+                <div class="stat-label">Active Issues</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+                <i class="bi bi-exclamation-triangle stat-icon"></i>
+                <div class="stat-number" th:text="${overdueCount}">0</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="stat-card position-relative" style="background:linear-gradient(135deg,#d97706,#b45309);">
+                <i class="bi bi-person-lines-fill stat-icon"></i>
+                <div class="stat-number" th:text="${totalAuthors}">0</div>
+                <div class="stat-label">Authors</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Recent Issues -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history me-2 text-primary"></i>Recent Issue Records</span>
+                    <a th:href="@{/issues}" class="btn btn-sm btn-outline-primary" sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                        <tr>
+                            <th class="ps-3">Book</th>
+                            <th>Member</th>
+                            <th>Issue Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="issue : ${recentIssues}">
+                            <td class="ps-3" th:text="${issue.book.title}"></td>
+                            <td th:text="${issue.user.fullName}"></td>
+                            <td th:text="${#temporals.format(issue.issueDate,'dd MMM yyyy')}"></td>
+                            <td th:text="${#temporals.format(issue.dueDate,'dd MMM yyyy')}"></td>
+                            <td>
+                                <span th:if="${issue.status.name() == 'ISSUED'}" class="badge badge-issued px-2 py-1">Issued</span>
+                                <span th:if="${issue.status.name() == 'RETURNED'}" class="badge badge-returned px-2 py-1">Returned</span>
+                                <span th:if="${issue.status.name() == 'OVERDUE'}" class="badge badge-overdue px-2 py-1">Overdue</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentIssues)}">
+                            <td colspan="5" class="text-center text-muted py-4">No issue records yet</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-lightning me-2 text-warning"></i>Quick Actions</div>
+                <div class="card-body d-flex flex-column gap-2">
+                    <a th:href="@{/books}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-journal-bookmark me-2"></i> Browse Books
+                    </a>
+                    <a th:href="@{/books/issue}" class="btn btn-outline-success text-start" sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Issue a Book
+                    </a>
+                    <a th:href="@{/authors/new}" class="btn btn-outline-secondary text-start" sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+                        <i class="bi bi-person-plus me-2"></i> Add Author
+                    </a>
+                    <a th:href="@{/books/new}" class="btn btn-outline-secondary text-start" sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')">
+                        <i class="bi bi-plus-circle me-2"></i> Add Book
+                    </a>
+                    <a th:href="@{/users/new}" class="btn btn-outline-secondary text-start" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-person-plus-fill me-2"></i> Add User
+                    </a>
+                    <a th:href="@{/users/profile}" class="btn btn-outline-info text-start" sec:authorize="hasRole('MEMBER')">
+                        <i class="bi bi-person-circle me-2"></i> My Books
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

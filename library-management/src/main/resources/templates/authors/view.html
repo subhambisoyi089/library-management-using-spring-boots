@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Author Detail | LibraryMS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
+:root{--sidebar-width:240px;--brand-color:#1e3a5f;--accent:#2563eb}
+body{background:#f0f4f8;min-height:100vh;font-family:'Segoe UI',sans-serif}
+.sidebar{width:var(--sidebar-width);position:fixed;top:0;left:0;height:100vh;background:var(--brand-color);color:#fff;display:flex;flex-direction:column;z-index:1000;box-shadow:3px 0 15px rgba(0,0,0,.15)}
+.sidebar-brand{padding:1.5rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.1);font-size:1.2rem;font-weight:700}
+.sidebar-brand i{color:#60a5fa;margin-right:8px}
+.sidebar-nav{padding:1rem 0;flex:1}
+.sidebar-section{padding:.4rem 1rem;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:.5rem}
+.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:.6rem 1.2rem;color:rgba(255,255,255,.78);text-decoration:none;font-size:.9rem;border-left:3px solid transparent;transition:all .2s}
+.sidebar-nav a:hover{background:rgba(255,255,255,.08);color:#fff;border-left-color:#60a5fa}
+.sidebar-nav a i{width:18px;text-align:center}
+.sidebar-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1)}
+.sidebar-footer .user-name{font-weight:600;color:#fff;font-size:.9rem}
+.sidebar-footer .user-info{font-size:.82rem;color:rgba(255,255,255,.6)}
+.main-content{margin-left:var(--sidebar-width);padding:1.5rem 2rem}
+.topbar{background:#fff;padding:.75rem 1.5rem;margin:-1.5rem -2rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.topbar h1{font-size:1.2rem;font-weight:600;color:#1e293b;margin:0}
+.card{border:none;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card-header{background:#fff;border-bottom:1px solid #f1f5f9;font-weight:600;padding:1rem 1.25rem;border-radius:12px 12px 0 0!important}
+.detail-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;font-weight:600;margin-bottom:2px}
+.detail-value{font-size:.95rem;color:#1e293b;font-weight:500}
+.author-avatar-lg{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:2rem;margin:0 auto 1rem}
+</style>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="main-content">
+    <div class="topbar">
+        <h1><i class="bi bi-person-badge me-2 text-primary"></i>Author Detail</h1>
+        <div class="d-flex gap-2">
+            <a th:href="@{/authors/edit/{id}(id=${author.id})}" class="btn btn-outline-secondary btn-sm"
+               sec:authorize="hasAnyRole('ADMIN','LIBRARIAN')"><i class="bi bi-pencil me-1"></i>Edit</a>
+            <a th:href="@{/authors}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card text-center p-4">
+                <div class="author-avatar-lg"
+                     th:text="${#strings.substring(author.firstName,0,1) + #strings.substring(author.lastName,0,1)}"></div>
+                <h5 class="fw-bold mb-1" th:text="${author.fullName}"></h5>
+                <div class="text-muted small" th:text="${author.nationality ?: ''}"></div>
+                <div class="text-muted small mt-1" th:text="${author.email ?: ''}"></div>
+                <div class="mt-2">
+                    <span class="badge bg-light text-dark"
+                          th:text="${author.books != null ? #lists.size(author.books) : 0} + ' book(s)'"></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-info-circle me-2 text-primary"></i>Author Information</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="detail-label">First Name</div>
+                            <div class="detail-value" th:text="${author.firstName}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Last Name</div>
+                            <div class="detail-value" th:text="${author.lastName}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value" th:text="${author.email ?: '—'}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Nationality</div>
+                            <div class="detail-value" th:text="${author.nationality ?: '—'}"></div>
+                        </div>
+                        <div class="col-12" th:if="${author.biography}">
+                            <div class="detail-label">Biography</div>
+                            <div class="detail-value text-muted small" th:text="${author.biography}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" th:if="${author.books != null and not #lists.isEmpty(author.books)}">
+                <div class="card-header"><i class="bi bi-journal-bookmark me-2 text-primary"></i>Books by this Author</div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead><tr><th class="ps-3">Title</th><th>Category</th><th>Available</th></tr></thead>
+                        <tbody>
+                        <tr th:each="book : ${author.books}">
+                            <td class="ps-3">
+                                <a th:href="@{/books/{id}(id=${book.id})}" class="text-decoration-none fw-semibold"
+                                   th:text="${book.title}"></a>
+                            </td>
+                            <td th:text="${book.category ?: '—'}"></td>
+                            <td>
+                                <span th:if="${book.availableCopies > 0}" class="badge"
+                                      style="background:#dcfce7;color:#166534"
+                                      th:text="${book.availableCopies} + ' / ' + ${book.totalCopies}"></span>
+                                <span th:unless="${book.availableCopies > 0}" class="badge"
+                                      style="background:#fee2e2;color:#991b1b">Unavailable</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
